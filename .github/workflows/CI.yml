@@ -1,0 +1,17 @@
+name: Build
+on: [push, pull_request]
+jobs:
+    build-Windows:
+        runs-on: windows-latest
+        defaults:
+          run:
+            shell: cmd
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: '8.x'
+            - name: Build
+              run: For /R %%I in (*.sln) do dotnet build %%I
+            - name: Run tests
+              run: For /R %%I in (*.sln) do dotnet test %%I
