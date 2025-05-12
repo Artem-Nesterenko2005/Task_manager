@@ -49,4 +49,18 @@ static internal class DataBase
             return records;
         }
     }
+
+    public static void DeleteTaskDb(string name)
+    {
+        using (NpgsqlConnection connection = new NpgsqlConnection(dbSetting))
+        {
+            connection.Open();
+            string request = "DELETE FROM records WHERE name = @name";
+            using (NpgsqlCommand command = new NpgsqlCommand(request, connection))
+            {
+                command.Parameters.AddWithValue("@name", name);
+                var rowsAffected = command.ExecuteNonQuery();
+            }
+        }
+    }
 }

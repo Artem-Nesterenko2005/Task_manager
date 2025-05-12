@@ -25,6 +25,8 @@ public partial class MainWindow : Window
 
     private ObservableCollection<Button> buttons;
 
+    private bool isDelete;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -48,33 +50,41 @@ public partial class MainWindow : Window
     {
         foreach (var button in buttons)
         {
-            button.Click += GetRecordInfo;
+            button.Click += ButtonCLick;
         }
     }
 
-    private void GetRecordInfo(object sender, RoutedEventArgs e)
+    private void ButtonCLick(object sender, RoutedEventArgs e)
     {
         if (sender is Button button)
         {
+            if (isDelete)
+            {
+                button.Visibility = Visibility.Collapsed;
+                DataBase.DeleteTaskDb(button.Content.ToString());
+                return;
+            }
             Interface.ShowRecordInfo(button, InfoPopup, TextPopup, records);
         }
     }
 
-    private void ChangeForm(Visibility mainPanel, Visibility tasksection, Visibility add)
+    private void ChangeForm(Visibility mainPanel, Visibility tasksection, Visibility add, Visibility sort, Visibility delete)
     {
         MainPanel.Visibility = mainPanel;
         CreateTaskSection.Visibility = tasksection;
         Add.Visibility = add;
+        Sort.Visibility = sort;
+        Delete.Visibility = delete;
     }
 
     private void OpenAddTask(object sender, RoutedEventArgs e)
     {
-        ChangeForm(Visibility.Collapsed, Visibility.Visible, Visibility.Collapsed);
+        ChangeForm(Visibility.Collapsed, Visibility.Visible, Visibility.Collapsed, Visibility.Collapsed, Visibility.Collapsed);
     }
 
     private void CancelAddTask(object sender, RoutedEventArgs e)
     {
-        ChangeForm(Visibility.Visible, Visibility.Collapsed, Visibility.Visible);
+        ChangeForm(Visibility.Visible, Visibility.Collapsed, Visibility.Visible, Visibility.Visible, Visibility.Visible);
         ClearForm();
     }
 
@@ -93,10 +103,10 @@ public partial class MainWindow : Window
         {
             priority = "3.low";
         }
-        DataBase.AddTaskDb(TaskName.Text, TaskContent.Text, priority, DateTime.Now);
-        var newButton = Interface.AddTask(MainPanel, TaskName.Text, TaskContent.Text, priority, DateTime.Now);
-        newButton.Click += GetRecordInfo;
-        records.Add(new Record(TaskName.Text, TaskContent.Text, priority, DateTime.Now), newButton);
+        DataBase.AddTaskDb(TaskName.Text, TaskContent.Text, priority, Calendar.SelectedDate.Value);
+        var newButton = Interface.AddTask(MainPanel, TaskName.Text, TaskContent.Text, priority, Calendar.SelectedDate.Value);
+        newButton.Click += ButtonCLick;
+        records.Add(new Record(TaskName.Text, TaskContent.Text, priority, Calendar.SelectedDate.Value), newButton);
         buttons.Add(newButton);
         ClearForm();
     }
@@ -105,7 +115,6 @@ public partial class MainWindow : Window
     {
         TaskContent.Text = string.Empty;
         TaskName.Text = string.Empty;
-        TaskDate.Text = string.Empty;
         LowPriority.IsChecked = false;
         MediumPriority.IsChecked = false;
         HighPriority.IsChecked = false;
@@ -116,5 +125,14 @@ public partial class MainWindow : Window
         this.records = Interface.SortByPriority(this.records);
         this.buttons = new ObservableCollection<Button>(records.Values);
         PlaceToPanel();
+    }
+
+    private void DeleteTask(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button)
+        {
+            button.Background = isDelete ? Brushes.Gray : Brushes.Red;
+            this.isDelete = !isDelete;
+        }
     }
 }
